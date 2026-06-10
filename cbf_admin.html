@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBF Academy — Painel do Administrador</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --g:#00703C;--gd:#005C30;--gl:#E8F5EE;--g2:#004225;
+    --y:#F5C300;--yl:#FFF9E0;
+    --txt:#1A1A1A;--muted:#5A6472;--border:#D8DDE4;--bg:#F4F6F8;
+    --r:12px;--sh:0 2px 12px rgba(0,0,0,0.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;}
+
+  header{background:linear-gradient(160deg,var(--g2),var(--g));color:white;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  .h-left h1{font-size:18px;font-weight:800;}
+  .h-left p{font-size:12px;opacity:0.7;margin-top:2px;}
+  .h-badge{background:var(--y);color:var(--gd);font-size:10px;font-weight:800;padding:4px 14px;border-radius:20px;letter-spacing:1px;}
+
+  .login-wrap{max-width:360px;margin:80px auto;padding:0 20px;}
+  .login-card{background:white;border-radius:var(--r);box-shadow:var(--sh);padding:32px;text-align:center;}
+  .login-card h2{font-size:18px;font-weight:800;color:var(--g);margin-bottom:6px;}
+  .login-card p{font-size:13px;color:var(--muted);margin-bottom:24px;}
+  .login-input{border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;font-size:15px;width:100%;outline:none;margin-bottom:12px;font-family:inherit;}
+  .login-input:focus{border-color:var(--g);}
+  .login-btn{width:100%;padding:13px;border:none;background:var(--g);color:white;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;}
+  .login-err{color:#d43;font-size:12px;margin-top:8px;display:none;}
+
+  .main{max-width:1000px;margin:0 auto;padding:20px;}
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+  .stat{background:white;border-radius:var(--r);box-shadow:var(--sh);padding:16px;text-align:center;}
+  .stat-num{font-size:32px;font-weight:800;color:var(--g);}
+  .stat-lbl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
+
+  .card{background:white;border-radius:var(--r);box-shadow:var(--sh);margin-bottom:16px;overflow:hidden;}
+  .card-hd{background:linear-gradient(135deg,var(--g),var(--gd));color:white;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;}
+  .card-hd h2{font-size:14px;font-weight:800;}
+  .card-bd{padding:18px;}
+
+  .filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center;}
+  select.filter{border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--txt);outline:none;background:white;}
+  select.filter:focus{border-color:var(--g);}
+  .btn-refresh{padding:8px 16px;border:none;background:var(--g);color:white;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
+
+  canvas{max-height:280px;}
+
+  .dbar-list{display:flex;flex-direction:column;gap:10px;}
+  .dbar{display:flex;flex-direction:column;gap:4px;}
+  .dbar-hd{display:flex;justify-content:space-between;font-size:12px;}
+  .dbar-name{font-weight:700;}
+  .dbar-val{color:var(--g);font-weight:700;}
+  .dbar-bg{background:var(--border);border-radius:99px;height:10px;}
+  .dbar-fill{height:10px;border-radius:99px;background:linear-gradient(90deg,var(--g),#00A857);transition:width 0.8s ease;}
+
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  th{background:var(--g);color:white;padding:8px 10px;text-align:left;font-size:11px;white-space:nowrap;}
+  td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  tr:hover td{background:#f8fffe;}
+  .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+  .b-ex{background:#e0f7ea;color:#00703C;}
+  .b-bom{background:#e8f4ff;color:#1455a8;}
+  .b-ad{background:#fff8e0;color:#8a5900;}
+  .b-dev{background:#fff0e8;color:#b83c10;}
+  .b-ins{background:#fff0f0;color:#c33;}
+
+  .no-data{text-align:center;padding:40px;color:var(--muted);font-size:14px;}
+
+  #dashboard{display:none;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-pg">
+  <header>
+    <div class="h-left"><h1>CBF Academy</h1><p>Painel do Administrador</p></div>
+    <div class="h-badge">ADMIN</div>
+  </header>
+  <div class="login-wrap">
+    <div class="login-card">
+      <h2>Acesso Restrito</h2>
+      <p>Este painel é exclusivo para administradores CBF Academy.</p>
+      <input class="login-input" type="password" id="pwd-input" placeholder="Senha de acesso" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="login-btn" onclick="doLogin()">Entrar</button>
+      <div class="login-err" id="login-err">Senha incorreta. Tente novamente.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <header>
+    <div class="h-left"><h1>CBF Academy — Painel de Avaliações</h1><p id="last-update">Carregando dados...</p></div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div class="h-badge">ADMIN</div>
+      <button onclick="doLogout()" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;">Sair</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="filter-row">
+      <select class="filter" id="f-licenca" onchange="applyFilters()">
+        <option value="">Todas as licenças</option>
+        <option>C</option><option>B</option><option>A</option><option>A Pro</option>
+      </select>
+      <select class="filter" id="f-avaliador" onchange="applyFilters()">
+        <option value="">Todos os avaliadores</option>
+      </select>
+      <button class="btn-refresh" onclick="loadData()">↻ Atualizar</button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num" id="s-total">—</div><div class="stat-lbl">Avaliações</div></div>
+      <div class="stat"><div class="stat-num" id="s-media">—</div><div class="stat-lbl">Média Geral %</div></div>
+      <div class="stat"><div class="stat-num" id="s-ap">—</div><div class="stat-lbl">Aprovados</div></div>
+      <div class="stat"><div class="stat-num" id="s-rep">—</div><div class="stat-lbl">A Rever</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+      <div class="card"><div class="card-hd"><h2>Distribuição de Conceitos</h2></div><div class="card-bd"><canvas id="pie-chart"></canvas></div></div>
+      <div class="card"><div class="card-hd"><h2>Radar — Médias por Dimensão</h2></div><div class="card-bd"><canvas id="radar-chart"></canvas></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><h2>Médias por Dimensão (%)</h2></div>
+      <div class="card-bd"><div class="dbar-list" id="dim-bars"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><h2>Evolução das Avaliações</h2></div>
+      <div class="card-bd"><canvas id="line-chart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd"><h2>Histórico de Avaliações</h2><span style="font-size:11px;opacity:0.8;" id="tbl-count"></span></div>
+      <div class="card-bd" style="overflow-x:auto;">
+        <table id="hist-table">
+          <thead><tr><th>Data</th><th>Treinador</th><th>Licença</th><th>Avaliador</th><th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th><th>Total %</th><th>Conceito</th></tr></thead>
+          <tbody id="hist-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// =============================================
+// CONFIGURE AQUI
+const ADMIN_PASSWORD = 'cbf2025admin'; // Altere esta senha!
+const SCRIPT_URL = 'COLE_AQUI_A_URL_DO_WEB_APP'; // mesma URL do formulário
+// =============================================
+
+const DIMS_INFO = [
+  {id:'D1',name:'Planejamento e Organização',max:20,codes:['D1.1','D1.2','D1.3','D1.4']},
+  {id:'D2',name:'Conteúdo Técnico-Tático',max:25,codes:['D2.1','D2.2','D2.3','D2.4','D2.5']},
+  {id:'D3',name:'Comportamento Pedagógico',max:25,codes:['D3.1','D3.2','D3.3','D3.4','D3.5']},
+  {id:'D4',name:'Gestão Espaço/Tempo',max:15,codes:['D4.1','D4.2','D4.3']},
+  {id:'D5',name:'Desenvolvimento do Jogador',max:15,codes:['D5.1','D5.2','D5.3']},
+];
+
+const CLASSIF = [
+  {min:90,conceito:'EXCELENTE',cls:'b-ex'},
+  {min:75,conceito:'BOM',cls:'b-bom'},
+  {min:60,conceito:'ADEQUADO',cls:'b-ad'},
+  {min:50,conceito:'EM DESENVOLVIMENTO',cls:'b-dev'},
+  {min:0,conceito:'INSUFICIENTE',cls:'b-ins'},
+];
+
+let allData=[], filteredData=[];
+let pieInst=null, radarInst=null, lineInst=null;
+
+function doLogin(){
+  const pwd=document.getElementById('pwd-input').value;
+  if(pwd===ADMIN_PASSWORD){
+    document.getElementById('login-pg').style.display='none';
+    document.getElementById('dashboard').style.display='block';
+    loadData();
+  } else {
+    document.getElementById('login-err').style.display='block';
+  }
+}
+
+function doLogout(){
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('login-pg').style.display='block';
+  document.getElementById('pwd-input').value='';
+}
+
+function loadData(){
+  document.getElementById('last-update').textContent='Carregando...';
+  fetch(SCRIPT_URL+'?action=getData')
+    .then(r=>r.json())
+    .then(data=>{
+      allData=data;
+      populateFilters();
+      applyFilters();
+      document.getElementById('last-update').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
+    })
+    .catch(()=>{
+      document.getElementById('last-update').textContent='Erro ao carregar dados';
+    });
+}
+
+function populateFilters(){
+  const avSel=document.getElementById('f-avaliador');
+  const avs=[...new Set(allData.map(d=>d.avaliador).filter(Boolean))];
+  avSel.innerHTML='<option value="">Todos os avaliadores</option>'+avs.map(a=>`<option>${a}</option>`).join('');
+}
+
+function applyFilters(){
+  const lic=document.getElementById('f-licenca').value;
+  const av=document.getElementById('f-avaliador').value;
+  filteredData=allData.filter(d=>{
+    if(lic&&d.licenca!==lic) return false;
+    if(av&&d.avaliador!==av) return false;
+    return true;
+  });
+  renderDashboard();
+}
+
+function calcScore(row){
+  let totO=0, totP=0;
+  const dimScores=DIMS_INFO.map(dim=>{
+    let dO=0, dP=0;
+    dim.codes.forEach(code=>{
+      const s=row[code];
+      if(s===''||s===undefined||s==='na'||s==='N/A') return;
+      dP+=5; dO+=parseFloat(s)||0;
+    });
+    return {pct:dP>0?Math.round(dO/dP*100):0, obt:dO, pos:dP};
+  });
+  dimScores.forEach(d=>{totO+=d.obt; totP+=d.pos;});
+  const pct=totP>0?Math.round(totO/totP*100):0;
+  const cl=CLASSIF.find(c=>pct>=c.min)||CLASSIF[4];
+  return {pct, dimScores, conceito:cl.conceito, cls:cl.cls};
+}
+
+function renderDashboard(){
+  if(!filteredData.length){
+    document.getElementById('s-total').textContent='0';
+    document.getElementById('s-media').textContent='—';
+    document.getElementById('s-ap').textContent='0';
+    document.getElementById('s-rep').textContent='0';
+    document.getElementById('hist-body').innerHTML='<tr><td colspan="11" class="no-data">Nenhuma avaliação encontrada.</td></tr>';
+    return;
+  }
+
+  const scored=filteredData.map(r=>({...r,...calcScore(r)}));
+
+  // Stats
+  const total=scored.length;
+  const media=Math.round(scored.reduce((a,b)=>a+b.pct,0)/total);
+  const aprovados=scored.filter(r=>r.pct>=60).length;
+  const arever=total-aprovados;
+  document.getElementById('s-total').textContent=total;
+  document.getElementById('s-media').textContent=media+'%';
+  document.getElementById('s-ap').textContent=aprovados;
+  document.getElementById('s-rep').textContent=arever;
+
+  // Dim bars & radar
+  const dimAvgs=DIMS_INFO.map((_,i)=>Math.round(scored.reduce((a,b)=>a+b.dimScores[i].pct,0)/total));
+  const barsEl=document.getElementById('dim-bars');
+  barsEl.innerHTML=DIMS_INFO.map((d,i)=>`<div class="dbar">
+    <div class="dbar-hd"><span class="dbar-name">${d.id} — ${d.name}</span><span class="dbar-val">${dimAvgs[i]}%</span></div>
+    <div class="dbar-bg"><div class="dbar-fill" style="width:${dimAvgs[i]}%"></div></div>
+  </div>`).join('');
+
+  // Pie chart
+  const counts={EXCELENTE:0,BOM:0,ADEQUADO:0,'EM DESENVOLVIMENTO':0,INSUFICIENTE:0};
+  scored.forEach(r=>counts[r.conceito]=(counts[r.conceito]||0)+1);
+  if(pieInst) pieInst.destroy();
+  pieInst=new Chart(document.getElementById('pie-chart'),{
+    type:'doughnut',
+    data:{
+      labels:Object.keys(counts),
+      datasets:[{data:Object.values(counts),backgroundColor:['#00703C','#2d88e8','#e8a92d','#e8622d','#d43'],borderWidth:2,borderColor:'white'}]
+    },
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:10}}}}
+  });
+
+  // Radar
+  if(radarInst) radarInst.destroy();
+  radarInst=new Chart(document.getElementById('radar-chart'),{
+    type:'radar',
+    data:{
+      labels:DIMS_INFO.map(d=>d.id+'\n'+d.name.split(' ').slice(0,2).join(' ')),
+      datasets:[{label:'Média %',data:dimAvgs,backgroundColor:'rgba(0,112,60,0.15)',borderColor:'#00703C',borderWidth:2,pointBackgroundColor:'#00703C',pointRadius:4}]
+    },
+    options:{responsive:true,scales:{r:{min:0,max:100,ticks:{stepSize:25,font:{size:10}},pointLabels:{font:{size:11}}}},plugins:{legend:{display:false}}}
+  });
+
+  // Line chart
+  const sorted=[...scored].sort((a,b)=>new Date(a.data)-new Date(b.data));
+  if(lineInst) lineInst.destroy();
+  lineInst=new Chart(document.getElementById('line-chart'),{
+    type:'line',
+    data:{
+      labels:sorted.map(r=>r.data||r.timestamp?.substring(0,10)||'—'),
+      datasets:[{label:'Resultado %',data:sorted.map(r=>r.pct),borderColor:'#00703C',backgroundColor:'rgba(0,112,60,0.08)',borderWidth:2,pointBackgroundColor:'#00703C',pointRadius:4,tension:0.3,fill:true}]
+    },
+    options:{responsive:true,scales:{y:{min:0,max:100,ticks:{font:{size:11}}},x:{ticks:{font:{size:10}}}},plugins:{legend:{display:false}}}
+  });
+
+  // Table
+  document.getElementById('tbl-count').textContent=total+' registro(s)';
+  const tbody=document.getElementById('hist-body');
+  tbody.innerHTML=scored.sort((a,b)=>new Date(b.data)-new Date(a.data)).map(r=>`<tr>
+    <td>${r.data||'—'}</td>
+    <td><strong>${r.treinador||'—'}</strong></td>
+    <td>${r.licenca||'—'}</td>
+    <td>${r.avaliador||'—'}</td>
+    ${r.dimScores.map(d=>`<td style="text-align:center;font-weight:700;color:${d.pct>=75?'var(--g)':d.pct>=60?'#e8a92d':'#d43'}">${d.pct}%</td>`).join('')}
+    <td style="text-align:center;font-weight:800;font-size:15px;color:${r.pct>=75?'var(--g)':r.pct>=60?'#e8a92d':'#d43'}">${r.pct}%</td>
+    <td><span class="badge ${r.cls}">${r.conceito}</span></td>
+  </tr>`).join('');
+}
+</script>
+</body>
+</html>

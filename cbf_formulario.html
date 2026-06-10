@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CBF Academy — Avaliação de Sessão</title>
+<style>
+  :root {
+    --g: #00703C; --gd: #005C30; --gl: #E8F5EE; --g2: #004225;
+    --y: #F5C300; --yl: #FFF9E0;
+    --txt: #1A1A1A; --muted: #5A6472; --border: #D8DDE4; --bg: #F4F6F8;
+    --r: 14px; --sh: 0 2px 16px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--txt); font-size: 15px; line-height: 1.5; min-height: 100vh; }
+
+  header { background: linear-gradient(160deg, var(--g2) 0%, var(--g) 100%); color: white; padding: 24px 20px 0; text-align: center; }
+  .h-badge { display: inline-block; background: var(--y); color: var(--gd); font-size: 10px; font-weight: 800; letter-spacing: 2px; padding: 3px 12px; border-radius: 20px; margin-bottom: 12px; text-transform: uppercase; }
+  header h1 { font-size: 20px; font-weight: 800; line-height: 1.25; margin-bottom: 4px; }
+  header p { font-size: 12px; opacity: 0.7; margin-bottom: 20px; }
+  .ltabs { display: flex; justify-content: center; gap: 6px; }
+  .ltab { background: rgba(255,255,255,0.15); color: white; border: none; border-radius: 20px 20px 0 0; padding: 7px 18px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
+  .ltab.active { background: white; color: var(--g); }
+
+  .pbar-wrap { background: white; border-bottom: 1px solid var(--border); padding: 12px 20px; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .pbar-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+  .pbar-bg { background: var(--border); border-radius: 99px; height: 4px; }
+  .pbar-fill { background: linear-gradient(90deg, var(--g), #00A857); border-radius: 99px; height: 4px; transition: width 0.4s ease; }
+
+  .snav { background: white; border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .snav::-webkit-scrollbar { display: none; }
+  .sdot { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--border); background: white; color: var(--muted); font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+  .sdot.active { border-color: var(--g); background: var(--g); color: white; box-shadow: 0 0 0 3px rgba(0,112,60,0.15); }
+  .sdot.done { border-color: var(--g); background: var(--gl); color: var(--g); }
+  .sline { flex-shrink: 0; height: 2px; width: 12px; background: var(--border); align-self: center; border-radius: 2px; }
+  .sline.done { background: var(--g); }
+
+  main { max-width: 600px; margin: 0 auto; padding: 16px; }
+
+  .card { background: white; border-radius: var(--r); box-shadow: var(--sh); margin-bottom: 16px; overflow: hidden; }
+  .card-hd { background: linear-gradient(135deg, var(--g) 0%, var(--gd) 100%); color: white; padding: 16px 18px; }
+  .card-hd h2 { font-size: 14px; font-weight: 800; letter-spacing: 0.3px; }
+  .card-hd .sub { font-size: 11px; opacity: 0.75; margin-top: 3px; }
+  .card-bd { padding: 18px; }
+
+  .fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .fg { display: flex; flex-direction: column; gap: 5px; }
+  .fg.full { grid-column: 1 / -1; }
+  label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
+  input[type="text"], input[type="date"], input[type="number"], select, textarea {
+    border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 14px; color: var(--txt); background: white; width: 100%; outline: none; transition: border 0.2s; font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--g); box-shadow: 0 0 0 3px rgba(0,112,60,0.1); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  .scale-leg { background: var(--gl); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; }
+  .scale-leg-title { font-size: 11px; font-weight: 800; color: var(--g); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scale-items { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .si { display: flex; gap: 6px; font-size: 11px; color: var(--txt); align-items: flex-start; }
+  .si-n { font-weight: 800; color: var(--g); min-width: 18px; }
+
+  .crit { border: 1.5px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; transition: border-color 0.2s; }
+  .crit.scored { border-color: var(--g); background: #fafffe; }
+  .crit:last-child { margin-bottom: 0; }
+  .crit-hd { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .ccode { background: var(--g); color: white; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+  .ctitle { font-size: 13px; font-weight: 700; line-height: 1.4; }
+  .inds { margin-bottom: 12px; }
+  .ind { display: flex; align-items: flex-start; gap: 6px; font-size: 11.5px; color: var(--muted); margin-bottom: 3px; line-height: 1.4; }
+  .idot { width: 4px; height: 4px; border-radius: 50%; background: var(--g); flex-shrink: 0; margin-top: 6px; }
+
+  .srow { display: flex; align-items: center; gap: 8px; }
+  .slabel { font-size: 11px; font-weight: 700; color: var(--muted); min-width: 52px; }
+  .sbtns { display: flex; gap: 4px; flex: 1; }
+  .sbtn {
+    flex: 1; height: 38px; border: 1.5px solid var(--border); border-radius: 9px; background: white;
+    font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.15s; color: var(--muted); touch-action: manipulation;
+  }
+  .sbtn:active { transform: scale(0.95); }
+  .s0 { background: #fff0f0 !important; border-color: #d43 !important; color: #c33 !important; }
+  .s1 { background: #fff2eb !important; border-color: #e8622d !important; color: #b83c10 !important; }
+  .s2 { background: #fff8e0 !important; border-color: #e8a92d !important; color: #8a5900 !important; }
+  .s3 { background: #e8f4ff !important; border-color: #2d88e8 !important; color: #1455a8 !important; }
+  .s4 { background: #edf9f0 !important; border-color: #2eb85c !important; color: #1a7a3c !important; }
+  .s5 { background: var(--gl) !important; border-color: var(--g) !important; color: var(--gd) !important; }
+  .sna { font-size: 10px !important; }
+  .sna-sel { background: #f0f0f0 !important; border-color: #999 !important; color: #555 !important; }
+
+  .obs-tog { font-size: 11px; color: var(--g); cursor: pointer; margin-top: 8px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }
+  .obs-f { margin-top: 8px; display: none; }
+  .obs-f.vis { display: block; }
+
+  .nav-btns { display: flex; gap: 10px; margin-top: 4px; margin-bottom: 20px; }
+  .btn-prev { flex: 1; padding: 14px; border: 1.5px solid var(--g); background: white; color: var(--g); border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+  .btn-next { flex: 2; padding: 14px; border: none; background: var(--g); color: white; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; touch-action: manipulation; box-shadow: 0 4px 12px rgba(0,112,60,0.3); }
+
+  /* SUCCESS PAGE */
+  #ok-pg { display: none; min-height: 100vh; background: linear-gradient(160deg, var(--g2), var(--g)); color: white; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 24px; }
+  .ok-icon { font-size: 64px; margin-bottom: 20px; }
+  .ok-title { font-size: 26px; font-weight: 800; margin-bottom: 12px; }
+  .ok-sub { font-size: 15px; opacity: 0.8; max-width: 280px; line-height: 1.6; margin-bottom: 32px; }
+  .ok-badge { background: var(--y); color: var(--gd); font-size: 12px; font-weight: 800; padding: 6px 20px; border-radius: 20px; letter-spacing: 1px; margin-bottom: 32px; }
+  .btn-nova { padding: 14px 32px; border: 2px solid white; background: transparent; color: white; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
+
+  /* LOADING */
+  #loading-pg { display: none; min-height: 100vh; background: white; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px; }
+  .spinner { width: 48px; height: 48px; border: 4px solid var(--gl); border-top-color: var(--g); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-txt { font-size: 15px; color: var(--muted); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<!-- FORM PAGE -->
+<div id="form-pg">
+  <header>
+    <div class="h-badge">CBF Academy</div>
+    <h1>Avaliação de Sessão Prática</h1>
+    <p>Barema de Avaliação — Licenças de Treinador</p>
+    <div class="ltabs">
+      <button class="ltab active" onclick="setLic('C')">C</button>
+      <button class="ltab" onclick="setLic('B')">B</button>
+      <button class="ltab" onclick="setLic('A')">A</button>
+      <button class="ltab" onclick="setLic('A Pro')">A Pro</button>
+    </div>
+  </header>
+  <div class="pbar-wrap">
+    <div class="pbar-labels"><span id="step-lbl">Identificação</span><span id="step-cnt">1 / 7</span></div>
+    <div class="pbar-bg"><div class="pbar-fill" id="pfill" style="width:14%"></div></div>
+  </div>
+  <div class="snav" id="snav"></div>
+  <main id="fmain"></main>
+</div>
+
+<!-- LOADING PAGE -->
+<div id="loading-pg">
+  <div class="spinner"></div>
+  <div class="loading-txt">Enviando avaliação…</div>
+</div>
+
+<!-- SUCCESS PAGE -->
+<div id="ok-pg">
+  <div class="ok-icon">✅</div>
+  <div class="ok-title">Avaliação Enviada!</div>
+  <div class="ok-badge">CBF ACADEMY</div>
+  <div class="ok-sub">Os dados foram registados com sucesso e estão disponíveis para o administrador.</div>
+  <button class="btn-nova" onclick="resetForm()">Nova Avaliação</button>
+</div>
+
+<script>
+// =============================================
+// CONFIGURE AQUI — cole a URL do seu Apps Script Web App
+// =============================================
+const SCRIPT_URL = 'COLE_AQUI_A_URL_DO_WEB_APP';
+// =============================================
+
+const DIMS = [
+  { id:'D1', name:'Planejamento e Organização', max:20, criteria:[
+    { code:'D1.1', title:'Plano de Sessão escrito e entregue antes da avaliação', inds:['Plano entregue no prazo estipulado','Contém objetivo geral e objetivos específicos','Apresenta descrição das tarefas com organização espacial','Inclui variáveis de carga: duração, volume, intensidade','Linguagem adequada ao nível da licença'] },
+    { code:'D1.2', title:'Alinhamento do conteúdo com o nível de licença e modelo de jogo', inds:['Conteúdos refletem os princípios metodológicos da licença','Coerência com a etapa de formação dos atletas','Sessão inserida logicamente em um microciclo'] },
+    { code:'D1.3', title:'Estrutura da sessão: aquecimento, parte principal e volta a calma', inds:['As três partes estão claramente diferenciadas','Aquecimento prepara funcional e especificamente','Progressão lógica de complexidade','Volta a calma adequada'] },
+    { code:'D1.4', title:'Preparação e organização prévia do espaço e dos materiais', inds:['Espaço montado e demarcado antes do início','Materiais disponíveis e organizados','Sem perda de tempo operacional','Antecipação logística nas transições'] },
+  ]},
+  { id:'D2', name:'Conteúdo Técnico-Tático', max:25, criteria:[
+    { code:'D2.1', title:'Adequação das tarefas ao objetivo da sessão', inds:['As tarefas treinam o que o objetivo propõe','Exercícios provocam as situações de jogo pretendidas','Variabilidade de contexto sem perder o foco','Progressões de dificuldade lógicas'] },
+    { code:'D2.2', title:'Qualidade técnica das tarefas propostas', inds:['Tarefas ecologicamente válidas','Condicionamentos adequados','Sem tarefas analíticas descontextualizadas','Proporção global/analítica coerente'] },
+    { code:'D2.3', title:'Domínio do conteúdo técnico-tático pelo treinador', inds:['Conhecimento aprofundado do conteúdo','Responde adequadamente a questões técnicas','Correções técnicas precisas','Vocabulário técnico correto'] },
+    { code:'D2.4', title:'Integração dos momentos do jogo', inds:['Contempla ao menos dois momentos do jogo','Lógica dos quatro momentos','Intencionalidade tática explícita','Explica relação entre tarefas e momentos'] },
+    { code:'D2.5', title:'Progressão, variabilidade e transferência das tarefas', inds:['Progressão crescente de complexidade','Variabilidade de formas de jogo','Tarefas finais próximas do jogo real','Diversifica os contextos táticos'] },
+  ]},
+  { id:'D3', name:'Comportamento Pedagógico', max:25, criteria:[
+    { code:'D3.1', title:'Qualidade e clareza das instruções iniciais', inds:['Instruções claras na 1ª explicação','Briefing proporcional à complexidade','Usa demonstração quando necessário','Verifica compreensão antes de iniciar'] },
+    { code:'D3.2', title:'Feedback: frequência, tipo, momento e qualidade', inds:['Feedback prescritivo e/ou interrogativo','Timing adequado','Individualização do feedback','Usa questionamento para estimular pensamento','Coerente com o objetivo da tarefa'] },
+    { code:'D3.3', title:'Gestão do comportamento, clima e relações no grupo', inds:['Clima positivo de aprendizagem','Gerencia comportamentos com respeito','Equidade no trato','Encoraja participação'] },
+    { code:'D3.4', title:'Capacidade de ajuste e resolução de problemas em tempo real', inds:['Identifica rapidamente quando a tarefa falha','Ajustes fundamentados','Adapta a imprevistos','Leitura e interpretação do jogo'] },
+    { code:'D3.5', title:'Posicionamento, comunicação não verbal e presença', inds:['Posicionamento estratégico','Comunicação não verbal intencional','Voz audível e tom adequado','Presença de liderança'] },
+  ]},
+  { id:'D4', name:'Gestão do Espaço, Tempo e Recursos', max:15, criteria:[
+    { code:'D4.1', title:'Gestão do tempo e ritmo da sessão', inds:['Tempo real próximo ao planeado (±20%)','Minimiza transições','Ritmo adequado sem paradas longas','Prática motora >60% da duração'] },
+    { code:'D4.2', title:'Uso do espaço e dos condicionamentos de área', inds:['Dimensões adequadas ao objetivo','Conhece efeitos do espaço','Referências visuais claras','Reorganiza quando necessário'] },
+    { code:'D4.3', title:'Segurança, higiene e bem-estar dos atletas', inds:['Sem riscos de lesão','Pausas de hidratação adequadas','Atenção ao bem-estar físico e emocional','Cumpre protocolos de segurança'] },
+  ]},
+  { id:'D5', name:'Desenvolvimento do Jogador', max:15, criteria:[
+    { code:'D5.1', title:'Promove a autonomia e o pensamento tático do atleta', inds:['Exige decisão real do atleta','Estimula resolução de problemas','Usa perguntas abertas','Valoriza o erro como aprendizagem'] },
+    { code:'D5.2', title:'Individualização e atenção ao estágio de desenvolvimento', inds:['Conhece o estágio de desenvolvimento','Adapta exigências e feedback','Intervém diferenciadamente','Não trata todos os atletas igual'] },
+    { code:'D5.3', title:'Reflexão pós-sessão e capacidade de autoavaliação', inds:['Encerramento reflexivo com atletas','Identifica pontos fortes e melhorias','Proposta de ajuste para próxima sessão'] },
+  ]},
+];
+
+const SNAMES = ['Identificação','D1 — Planejamento','D2 — Técnico-Tático','D3 — Pedagógico','D4 — Gestão','D5 — Desenvolvimento','Feedback'];
+let step=0, scores={}, obs={}, lic='C', ident={}, fb={p:'',a:'',r:''};
+
+function setLic(l){ lic=l; document.querySelectorAll('.ltab').forEach((t,i)=>t.classList.toggle('active',['C','B','A','A Pro'][i]===l)); }
+
+function buildNav(){
+  const nav=document.getElementById('snav'); nav.innerHTML='';
+  for(let i=0;i<7;i++){
+    if(i>0){const ln=document.createElement('div');ln.className='sline'+(i<=step?' done':'');nav.appendChild(ln);}
+    const d=document.createElement('div');
+    d.className='sdot'+(i===step?' active':i<step?' done':'');
+    d.textContent=i===0?'ID':i<=5?'D'+i:'FB';
+    if(i<step) d.onclick=()=>goTo(i);
+    nav.appendChild(d);
+  }
+}
+
+function updProg(){
+  const pct=Math.round(((step+1)/7)*100);
+  document.getElementById('pfill').style.width=pct+'%';
+  document.getElementById('step-lbl').textContent=SNAMES[step];
+  document.getElementById('step-cnt').textContent=(step+1)+' / 7';
+  buildNav();
+}
+
+function goTo(s){step=s;render();}
+
+function render(){
+  updProg();
+  const m=document.getElementById('fmain');
+  if(step===0) m.innerHTML=renderIdent();
+  else if(step>=1&&step<=5) m.innerHTML=renderDim(step-1);
+  else m.innerHTML=renderFb();
+  window.scrollTo(0,0);
+}
+
+function renderIdent(){
+  return `<div class="card">
+    <div class="card-hd"><h2>1. Identificação</h2><div class="sub">Dados do treinador e da sessão</div></div>
+    <div class="card-bd">
+      <div class="fgrid">
+        <div class="fg full"><label>Treinador Avaliado *</label><input type="text" id="i-tr" placeholder="Nome completo" value="${ident.tr||''}"></div>
+        <div class="fg"><label>Data *</label><input type="date" id="i-dt" value="${ident.dt||''}"></div>
+        <div class="fg"><label>Licença</label><input type="text" id="i-lic" placeholder="C / B / A / A Pro" value="${ident.lic||lic}"></div>
+        <div class="fg"><label>Módulo / Etapa</label><input type="text" id="i-mod" placeholder="ex: Módulo 3" value="${ident.mod||''}"></div>
+        <div class="fg full"><label>Avaliador *</label><input type="text" id="i-av" placeholder="Nome do avaliador" value="${ident.av||''}"></div>
+        <div class="fg"><label>Local</label><input type="text" id="i-loc" placeholder="Cidade / Instalação" value="${ident.loc||''}"></div>
+        <div class="fg"><label>Categoria Etária</label><input type="text" id="i-cat" placeholder="ex: Sub-15" value="${ident.cat||''}"></div>
+        <div class="fg"><label>Nº de Atletas</label><input type="number" id="i-atl" placeholder="ex: 20" value="${ident.atl||''}"></div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-btns"><button class="btn-next" onclick="saveIdent()">Iniciar Avaliação →</button></div>`;
+}
+
+function saveIdent(){
+  const tr=v('i-tr'), av=v('i-av'), dt=v('i-dt');
+  if(!tr||!av||!dt){ alert('Preencha: Treinador, Avaliador e Data.'); return; }
+  ident={tr,dt,lic:v('i-lic')||lic,mod:v('i-mod'),av,loc:v('i-loc'),cat:v('i-cat'),atl:v('i-atl')};
+  step=1; render();
+}
+
+function v(id){return document.getElementById(id)?.value||'';}
+
+function renderDim(di){
+  const dim=DIMS[di];
+  const crits=dim.criteria.map(c=>renderCrit(c)).join('');
+  const isLast=di===4;
+  const prevLbl=di===0?'Identificação':'D'+di;
+  return `<div class="scale-leg">
+    <div class="scale-leg-title">Escala de pontuação</div>
+    <div class="scale-items">
+      ${[['0','Ausente'],['1','Insuficiente'],['2','Em desenvolvimento'],['3','Adequado'],['4','Bom'],['5','Excelente']].map(([n,l])=>`<div class="si"><span class="si-n">${n}</span><span>${l}</span></div>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><h2>${dim.id} — ${dim.name}</h2><div class="sub">Máx: ${dim.max} pts · ${dim.criteria.length} critérios</div></div>
+    <div class="card-bd">${crits}</div>
+  </div>
+  <div class="nav-btns">
+    <button class="btn-prev" onclick="goTo(${di})">&larr; ${prevLbl}</button>
+    <button class="btn-next" onclick="goTo(${di+2})">${isLast?'Feedback &rarr;':'D'+(di+2)+' &rarr;'}</button>
+  </div>`;
+}
+
+function renderCrit(c){
+  const val=scores[c.code], o=obs[c.code]||'';
+  const btns=[0,1,2,3,4,5].map(n=>`<button class="sbtn ${val===n?'s'+n:''}" onclick="setSc('${c.code}',${n})">${n}</button>`).join('');
+  const nab=`<button class="sbtn sna ${val==='na'?'sna-sel':''}" onclick="setSc('${c.code}','na')">N/A</button>`;
+  const isScored = val !== undefined;
+  return `<div class="crit ${isScored?'scored':''}" id="c-${c.code}">
+    <div class="crit-hd"><span class="ccode">${c.code}</span><span class="ctitle">${c.title}</span></div>
+    <div class="inds">${c.inds.map(i=>`<div class="ind"><div class="idot"></div><span>${i}</span></div>`).join('')}</div>
+    <div class="srow"><span class="slabel">Nota</span><div class="sbtns">${btns}${nab}</div></div>
+    <span class="obs-tog" onclick="togObs('${c.code}')">＋ Observação</span>
+    <div class="obs-f ${o?'vis':''}" id="o-${c.code}">
+      <input style="border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;width:100%;outline:none;font-family:inherit;margin-top:4px" type="text" placeholder="Observação opcional..." value="${o}" onchange="setObs('${c.code}',this.value)">
+    </div>
+  </div>`;
+}
+
+function setSc(code,val){
+  scores[code]=val;
+  const el=document.getElementById('c-'+code); if(!el)return;
+  el.classList.add('scored');
+  el.querySelectorAll('.sbtn').forEach(b=>{
+    const isNA=b.classList.contains('sna');
+    b.className='sbtn'+(isNA?' sna':'');
+    const bv=isNA?'na':parseInt(b.textContent);
+    if(bv===val) b.className+=(val==='na'?' sna-sel':' s'+val);
+  });
+}
+
+function setObs(code,val){obs[code]=val;}
+function togObs(code){document.getElementById('o-'+code).classList.toggle('vis');}
+
+function renderFb(){
+  return `<div class="card">
+    <div class="card-hd"><h2>6. Feedback ao Treinador</h2><div class="sub">Retorno qualitativo para o avaliado</div></div>
+    <div class="card-bd">
+      <div class="fg" style="margin-bottom:14px"><label>Pontos Fortes Observados</label>
+        <textarea id="fb-p" placeholder="Principais pontos fortes demonstrados durante a sessão...">${fb.p}</textarea></div>
+      <div class="fg" style="margin-bottom:14px"><label>Áreas de Desenvolvimento</label>
+        <textarea id="fb-a" placeholder="Áreas prioritárias que requerem melhoria...">${fb.a}</textarea></div>
+      <div class="fg"><label>Recomendações</label>
+        <textarea id="fb-r" placeholder="Orientações e metas para a próxima sessão...">${fb.r}</textarea></div>
+    </div>
+  </div>
+  <div class="nav-btns"><button class="btn-prev" onclick="saveFbGo(5)">&larr; D5</button></div>
+  <div style="max-width:600px;margin:0 auto;padding:0 16px 24px">
+    <button style="width:100%;padding:16px;border:none;background:var(--y);color:var(--gd);border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(245,195,0,0.4)" onclick="submitForm()">Enviar Avaliação ✓</button>
+  </div>`;
+}
+
+function saveFbGo(s){
+  fb.p=v('fb-p')||fb.p; fb.a=v('fb-a')||fb.a; fb.r=v('fb-r')||fb.r;
+  step=s; render();
+}
+
+function submitForm(){
+  fb.p=v('fb-p')||fb.p; fb.a=v('fb-a')||fb.a; fb.r=v('fb-r')||fb.r;
+
+  // Montar payload
+  const payload = {
+    timestamp: new Date().toISOString(),
+    treinador: ident.tr, data: ident.dt, licenca: ident.lic,
+    modulo: ident.mod, avaliador: ident.av, local: ident.loc,
+    categoria: ident.cat, atletas: ident.atl,
+    pontos_fortes: fb.p, areas_desenvolvimento: fb.a, recomendacoes: fb.r,
+  };
+
+  // Adicionar pontuações
+  DIMS.forEach(dim => {
+    dim.criteria.forEach(c => {
+      payload[c.code] = scores[c.code] !== undefined ? scores[c.code] : '';
+      if(obs[c.code]) payload[c.code + '_obs'] = obs[c.code];
+    });
+  });
+
+  // Mostrar loading
+  document.getElementById('form-pg').style.display='none';
+  document.getElementById('loading-pg').style.display='flex';
+
+  // Enviar para Apps Script
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+  .then(() => {
+    document.getElementById('loading-pg').style.display='none';
+    document.getElementById('ok-pg').style.display='flex';
+  })
+  .catch(() => {
+    // Mesmo com erro de CORS, o Apps Script recebe os dados
+    document.getElementById('loading-pg').style.display='none';
+    document.getElementById('ok-pg').style.display='flex';
+  });
+}
+
+function resetForm(){
+  scores={}; obs={}; ident={}; fb={p:'',a:'',r:''}; step=0;
+  document.getElementById('ok-pg').style.display='none';
+  document.getElementById('form-pg').style.display='block';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
