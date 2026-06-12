@@ -351,8 +351,11 @@ function submitForm(){
   document.getElementById('loading-pg').style.display='flex';
 
   // Enviar para Apps Script
+  // IMPORTANTE: usar text/plain evita o preflight CORS (OPTIONS), que o
+  // Apps Script não responde corretamente e faria o POST nunca chegar.
   fetch(SCRIPT_URL, {
     method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(payload),
   })
   .then(() => {
